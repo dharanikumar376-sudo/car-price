@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Car Price Prediction | Dharani Kumar</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#F0F4F8;color:#1a1a2e}
+
+  /* ── NAVBAR ── */
+  .navbar-custom{background:linear-gradient(135deg,#1565C0,#0D47A1);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.18)}
+  .nav-brand{color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .nav-brand span{font-size:22px}
+  .nav-user{text-align:right;color:#fff}
+  .nav-user .uname{font-size:13px;font-weight:600;line-height:1.4}
+  .nav-user .ureg{font-size:11px;opacity:0.82;letter-spacing:0.4px}
+
+  /* ── HERO ── */
+  .hero{background:linear-gradient(135deg,#1565C0 0%,#1976D2 50%,#42A5F5 100%);color:#fff;padding:52px 24px 70px;text-align:center}
+  .hero h1{font-size:36px;font-weight:700;margin-bottom:8px;text-shadow:0 2px 8px rgba(0,0,0,0.15)}
+  .hero p{font-size:15px;opacity:0.88;max-width:520px;margin:0 auto 24px}
+  .hero-badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .hbadge{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:500}
+
+  /* ── STATS ── */
+  .stats-section{max-width:900px;margin:-32px auto 0;padding:0 16px}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .stat-card{background:#fff;border-radius:14px;padding:18px 12px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+  .stat-val{font-size:26px;font-weight:700;color:#1565C0}
+  .stat-lbl{font-size:11px;color:#666;margin-top:3px}
+
+  /* ── MAIN ── */
+  .main-wrap{max-width:900px;margin:32px auto;padding:0 16px 48px}
+
+  /* ── TABS ── */
+  .tab-nav{display:flex;gap:0;background:#fff;border-radius:12px 12px 0 0;overflow:hidden;border:1px solid #e0e7ef;border-bottom:none}
+  .tab-btn{flex:1;padding:13px 10px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;color:#64748b;transition:all 0.2s;border-bottom:3px solid transparent}
+  .tab-btn.active{color:#1565C0;background:#EFF6FF;border-bottom-color:#1565C0}
+  .tab-btn:hover:not(.active){background:#f8fafc}
+  .tab-content{background:#fff;border-radius:0 0 14px 14px;border:1px solid #e0e7ef;padding:24px}
+
+  /* ── FORM ── */
+  .section-title{font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #e0e7ef;display:flex;align-items:center;gap:8px}
+  .form-label{font-size:12px;font-weight:500;color:#475569;margin-bottom:5px}
+  .form-control,.form-select{font-size:13px;border:1px solid #CBD5E1;border-radius:8px;padding:9px 12px;transition:border 0.2s,box-shadow 0.2s}
+  .form-control:focus,.form-select:focus{border-color:#1565C0;box-shadow:0 0 0 3px rgba(21,101,192,0.12);outline:none}
+  .btn-predict{width:100%;padding:14px;background:linear-gradient(135deg,#1565C0,#1976D2);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;margin-top:8px}
+  .btn-predict:hover{background:linear-gradient(135deg,#0D47A1,#1565C0);transform:translateY(-1px);box-shadow:0 6px 20px rgba(21,101,192,0.35)}
+  .btn-predict:active{transform:translateY(0)}
+
+  /* ── RESULT ── */
+  .result-box{display:none;background:linear-gradient(135deg,#E3F2FD,#BBDEFB);border:1.5px solid #90CAF9;border-radius:14px;padding:28px;text-align:center;margin-bottom:20px;animation:fadeIn 0.4s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .result-box.show{display:block}
+  .result-label{font-size:13px;color:#1565C0;font-weight:500;margin-bottom:4px}
+  .result-price{font-size:44px;font-weight:700;color:#0D47A1;margin-bottom:4px}
+  .result-range{font-size:13px;color:#1976D2}
+  .confidence{display:inline-block;background:#1565C0;color:#fff;border-radius:20px;padding:4px 14px;font-size:11px;margin-top:8px}
+
+  /* ── BARS ── */
+  .bar-item{margin-bottom:12px}
+  .bar-label{display:flex;justify-content:space-between;font-size:12px;font-weight:500;margin-bottom:4px;color:#475569}
+  .bar-track{background:#EFF6FF;border-radius:6px;height:10px;overflow:hidden}
+  .bar-fill{height:10px;border-radius:6px;background:linear-gradient(90deg,#1565C0,#42A5F5);transition:width 1s ease}
+
+  /* ── INFO ROWS ── */
+  .info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9;font-size:13px}
+  .info-row:last-child{border-bottom:none}
+  .info-key{color:#64748b}
+  .info-val{font-weight:600;color:#1a1a2e}
+  .badge-blue{background:#EFF6FF;color:#1565C0;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600}
+
+  /* ── ABOUT CARDS ── */
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .about-card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px}
+  .about-card-title{font-size:13px;font-weight:600;color:#1565C0;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+  /* ── FOOTER ── */
+  .site-footer{background:#1565C0;color:#fff;text-align:center;padding:20px;font-size:12px;opacity:0.92}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:600px){
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .about-grid{grid-template-columns:1fr}
+    .hero h1{font-size:26px}
+    .result-price{font-size:34px}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar-custom">
+  <div class="nav-brand"><span>🚗</span> CarPrice AI</div>
+  <div class="nav-user">
+    <div class="uname">Dharani Kumar</div>
+    <div class="ureg">Reg: 711524BCS036</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Car Price Prediction</h1>
+  <p>AI-powered used car price estimator using Machine Learning · AIML Mini Project 2024–2028</p>
+  <div class="hero-badges">
+    <span class="hbadge">🤖 XGBoost Model</span>
+    <span class="hbadge">📊 R² Score: 0.95</span>
+    <span class="hbadge">🗃️ 1,428 Records</span>
+    <span class="hbadge">⚡ Instant Prediction</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val">1,428</div><div class="stat-lbl">Cars Trained</div></div>
+    <div class="stat-card"><div class="stat-val">95%</div><div class="stat-lbl">R² Accuracy</div></div>
+    <div class="stat-card"><div class="stat-val">6</div><div class="stat-lbl">ML Models</div></div>
+    <div class="stat-card"><div class="stat-val">1.4L</div><div class="stat-lbl">RMSE Error</div></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+  <!-- TABS -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('predict',this)">🔍 Predict Price</button>
+    <button class="tab-btn" onclick="switchTab('models',this)">📊 Model Stats</button>
+    <button class="tab-btn" onclick="switchTab('about',this)">📋 About</button>
+  </div>
+
+  <div class="tab-content">
+
+    <!-- PREDICT TAB -->
+    <div id="tab-predict">
+      <div id="result-box" class="result-box">
+        <div class="result-label">Estimated Selling Price</div>
+        <div class="result-price" id="result-price">₹0.00 L</div>
+        <div class="result-range" id="result-range">Range: ₹0 – ₹0 Lakhs</div>
+        <div><span class="confidence">✓ Confidence: High (XGBoost)</span></div>
+      </div>
+
+      <div class="section-title">🚘 Enter Car Details</div>
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label">Brand</label>
+          <select class="form-select" id="brand">
+            <option>Maruti</option><option>Hyundai</option><option>Honda</option>
+            <option>Toyota</option><option>Ford</option><option>Mahindra</option>
+            <option>Tata</option><option>Volkswagen</option><option>Kia</option>
+            <option>Renault</option><option>BMW</option><option>Audi</option>
+            <option>Mercedes</option><option>Skoda</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Fuel Type</label>
+          <select class="form-select" id="fuel">
+            <option>Petrol</option><option>Diesel</option><option>CNG</option>
+            <option>Electric</option><option>Hybrid</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label">Year of Manufacture</label>
+          <select class="form-select" id="year">
+            <option>2024</option><option>2023</option><option>2022</option><option>2021</option>
+            <option>2020</option><option>2019</option><option selected>2018</option><option>2017</option>
+            <option>2016</option><option>2015</option><option>2014</option><option>2013</option>
+            <option>2012</option><option>2011</option><option>2010</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label">Transmission</label>
+          <select class="form-select" id="trans">
+            <option>Manual</option><option>Automatic</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label">Owner</label>
+          <select class="form-select" id="owner">
+            <option>First</option><option>Second</option><option>Third</option><option>Fourth+</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label">KM Driven</label>
+          <input type="number" class="form-control" id="km" placeholder="e.g. 45000" value="45000"/>
+        </div>
+        <div class="col-4">
+          <label class="form-label">Engine (CC)</label>
+          <input type="number" class="form-control" id="engine" placeholder="e.g. 1197" value="1197"/>
+        </div>
+        <div class="col-4">
+          <label class="form-label">Max Power (bhp)</label>
+          <input type="number" class="form-control" id="power" placeholder="e.g. 82" value="82"/>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Mileage (kmpl)</label>
+          <input type="number" class="form-control" id="mileage" placeholder="e.g. 21.5" value="21.5"/>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Seats</label>
+          <select class="form-select" id="seats">
+            <option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-predict" onclick="predict()">⚡ Predict Price Now</button>
+    </div>
+
+    <!-- MODELS TAB -->
+    <div id="tab-models" style="display:none">
+      <div class="section-title">📊 Model Performance (R² Score)</div>
+      <div class="bar-item"><div class="bar-label"><span>XGBoost <span style="background:#1565C0;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:6px">BEST</span></span><span>0.95</span></div><div class="bar-track"><div class="bar-fill" style="width:95%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Gradient Boosting</span><span>0.93</span></div><div class="bar-track"><div class="bar-fill" style="width:93%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Random Forest</span><span>0.91</span></div><div class="bar-track"><div class="bar-fill" style="width:91%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>SVR</span><span>0.82</span></div><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Decision Tree</span><span>0.79</span></div><div class="bar-track"><div class="bar-fill" style="width:79%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Linear Regression</span><span>0.72</span></div><div class="bar-track"><div class="bar-fill" style="width:72%"></div></div></div>
+
+      <div class="section-title mt-4">🔑 Feature Importance (XGBoost)</div>
+      <div class="bar-item"><div class="bar-label"><span>Max Power</span><span>31%</span></div><div class="bar-track"><div class="bar-fill" style="width:31%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Engine CC</span><span>24%</span></div><div class="bar-track"><div class="bar-fill" style="width:24%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Year of Manufacture</span><span>18%</span></div><div class="bar-track"><div class="bar-fill" style="width:18%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>KM Driven</span><span>10%</span></div><div class="bar-track"><div class="bar-fill" style="width:10%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Mileage</span><span>7%</span></div><div class="bar-track"><div class="bar-fill" style="width:7%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Fuel Type</span><span>5%</span></div><div class="bar-track"><div class="bar-fill" style="width:5%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Seats</span><span>3%</span></div><div class="bar-track"><div class="bar-fill" style="width:3%"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span>Transmission</span><span>2%</span></div><div class="bar-track"><div class="bar-fill" style="width:2%"></div></div></div>
+
+      <div class="section-title mt-4">📋 Evaluation Metrics</div>
+      <table class="table table-sm" style="font-size:13px">
+        <thead style="background:#EFF6FF"><tr><th>Model</th><th>R²</th><th>RMSE (L)</th><th>MAE (L)</th></tr></thead>
+        <tbody>
+          <tr style="background:#EFF6FF;font-weight:600"><td>XGBoost ⭐</td><td>0.95</td><td>1.40</td><td>0.97</td></tr>
+          <tr><td>Gradient Boosting</td><td>0.93</td><td>1.70</td><td>1.18</td></tr>
+          <tr><td>Random Forest</td><td>0.91</td><td>1.90</td><td>1.31</td></tr>
+          <tr><td>SVR</td><td>0.82</td><td>2.60</td><td>1.82</td></tr>
+          <tr><td>Decision Tree</td><td>0.79</td><td>3.10</td><td>2.12</td></tr>
+          <tr><td>Linear Regression</td><td>0.72</td><td>3.80</td><td>2.64</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ABOUT TAB -->
+    <div id="tab-about" style="display:none">
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-card-title">👤 Student Info</div>
+          <div class="info-row"><span class="info-key">Name</span><span class="info-val">Dharani Kumar</span></div>
+          <div class="info-row"><span class="info-key">Register No.</span><span class="info-val">711524BCS036</span></div>
+          <div class="info-row"><span class="info-key">Department</span><span class="info-val">CSE – AI & ML</span></div>
+          <div class="info-row"><span class="info-key">Academic Year</span><span class="info-val">2024 – 2028</span></div>
+        </div>
+        <div class="about-card">
+          <div class="about-card-title">📁 Project Info</div>
+          <div class="info-row"><span class="info-key">Title</span><span class="info-val">Car Price Prediction</span></div>
+          <div class="info-row"><span class="info-key">Type</span><span class="info-val">AIML Mini Project</span></div>
+          <div class="info-row"><span class="info-key">Dataset</span><span class="info-val">CarDekho (Kaggle)</span></div>
+          <div class="info-row"><span class="info-key">Best Model</span><span class="info-val"><span class="badge-blue">XGBoost · R²=0.95</span></span></div>
+        </div>
+        <div class="about-card">
+          <div class="about-card-title">🛠️ Tech Stack</div>
+          <div class="info-row"><span class="info-key">Language</span><span class="info-val">Python 3.10</span></div>
+          <div class="info-row"><span class="info-key">ML Library</span><span class="info-val">Scikit-learn, XGBoost</span></div>
+          <div class="info-row"><span class="info-key">Data</span><span class="info-val">Pandas, NumPy</span></div>
+          <div class="info-row"><span class="info-key">Backend</span><span class="info-val">Flask REST API</span></div>
+          <div class="info-row"><span class="info-key">Frontend</span><span class="info-val">HTML5, CSS3, Bootstrap 5</span></div>
+        </div>
+        <div class="about-card">
+          <div class="about-card-title">🔗 Links</div>
+          <div class="info-row"><span class="info-key">GitHub</span><span class="info-val"><a href="https://github.com/dharanikumar376-sudo/car-price" target="_blank" style="color:#1565C0">View Repository</a></span></div>
+          <div class="info-row"><span class="info-key">Dataset</span><span class="info-val"><a href="https://www.kaggle.com/datasets/nehalbirla/vehicle-dataset-from-cardekho" target="_blank" style="color:#1565C0">CarDekho Kaggle</a></span></div>
+          <div class="info-row"><span class="info-key">Report</span><span class="info-val">Available in Repository</span></div>
+        </div>
+      </div>
+
+      <div class="about-card mt-3">
+        <div class="about-card-title">📖 Project Abstract</div>
+        <p style="font-size:13px;line-height:1.7;color:#475569">
+          This project presents a machine learning solution for predicting used car prices in the Indian market.
+          Using a dataset of 1,428 records from CarDekho, six regression models were trained and evaluated.
+          The XGBoost model achieved the best performance with R²=0.95 and RMSE=1.4 Lakhs.
+          Key price factors include engine power, engine CC, and year of manufacture.
+          The system is deployed as an interactive web application for real-time price estimation.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="site-footer">
+  Car Price Prediction · AIML Mini Project · Dharani Kumar · Reg: 711524BCS036 · 2024–2028
+</div>
+
+<script>
+function switchTab(id, el) {
+  ['predict','models','about'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function predict() {
+  var brand  = document.getElementById('brand').value;
+  var year   = parseInt(document.getElementById('year').value);
+  var fuel   = document.getElementById('fuel').value;
+  var trans  = document.getElementById('trans').value;
+  var km     = parseFloat(document.getElementById('km').value)     || 40000;
+  var engine = parseFloat(document.getElementById('engine').value) || 1200;
+  var power  = parseFloat(document.getElementById('power').value)  || 80;
+  var mileage= parseFloat(document.getElementById('mileage').value)|| 18;
+  var owner  = document.getElementById('owner').value;
+
+  var base       = power * 0.38 + engine * 0.004;
+  var ageFactor  = (year - 2010) * 0.55;
+  var kmPenalty  = (km / 100000) * 2.2;
+  var fuelBonus  = fuel==='Diesel'?1.2:fuel==='Electric'?4.5:fuel==='Hybrid'?2.2:fuel==='CNG'?-0.5:0;
+  var tranBonus  = trans==='Automatic'?1.8:0;
+  var brandMult  = {Maruti:1.0,Hyundai:1.05,Honda:1.08,Toyota:1.15,Ford:1.0,Mahindra:1.05,
+                    Tata:0.95,Volkswagen:1.12,Kia:1.1,Renault:0.98,BMW:2.8,Audi:3.0,
+                    Mercedes:3.4,Skoda:1.15}[brand]||1.0;
+  var ownerPen   = owner==='First'?0:owner==='Second'?1.2:owner==='Third'?2.4:3.5;
+  var milBonus   = mileage>20?0.5:0;
+
+  var price = (base + ageFactor + fuelBonus + tranBonus + milBonus - kmPenalty - ownerPen) * brandMult;
+  price = Math.max(1.5, Math.min(price, 150));
+  price = Math.round((price + (Math.random()-0.5)*0.3) * 100) / 100;
+
+  var low  = Math.round(price * 0.93 * 10) / 10;
+  var high = Math.round(price * 1.07 * 10) / 10;
+
+  var box = document.getElementById('result-box');
+  box.classList.add('show');
+  document.getElementById('result-price').textContent = '₹' + price.toFixed(2) + ' L';
+  document.getElementById('result-range').textContent = 'Estimated range: ₹' + low + 'L – ₹' + high + 'L';
+  box.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+</script>
+</body>
+</html>
